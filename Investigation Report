@@ -1,4 +1,4 @@
-# BitSentinelCore Incident Report: Threat Hunting Timeline
+# Hunt Report: Fake AV with Registry + Task Scheduler Persistence
 
 ## Summary
 
