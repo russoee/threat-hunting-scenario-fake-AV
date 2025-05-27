@@ -1,50 +1,52 @@
-# Threat Hunt- Fake Antivirus
+# Threat Hunting Case Study: BitSentinelCore Fake Antivirus Attack
 
-**A forensic threat hunting investigation of `BitSentinelCore.exe` — a fake antivirus used to establish persistence via registry keys, scheduled tasks, and deceptive shortcut files.**
+This project documents a full threat hunting investigation using Microsoft Defender for Endpoint and Kusto Query Language (KQL) to uncover a simulated malware scenario. It follows the attacker’s actions from compiling and executing a fake antivirus binary to achieving stealthy persistence and triggering keylogging behavior through deceptive shortcut files.
 
-This hunt was performed in a Microsoft Defender for Endpoint lab environment as part of an APT simulation challenge. The malware chain was tracked from initial execution to persistence mechanisms and behavioral triggers, uncovering how attackers maintain long-term access without detection.
-
----
-
-##  Key Objectives
-
-- Identify the initial malicious binary and how it was delivered
-- Trace all persistence mechanisms used by the attacker
-- Determine the behavioral trigger for keylogging activity
-- Build a forensic timeline of execution events
+📄 **Full case write-up:** BitSentinel\_Investigation\_Report.md
 
 ---
 
-##  Techniques Observed
+## Scenario Summary
 
-- Local compilation of malware via `csc.exe`
-- Registry Run key modification (`HKCU\\...\\Run`)
-- Scheduled task creation using `schtasks.exe`
-- Decoy `.lnk` file (`systemreport.lnk`) to re-trigger malware
+A malicious binary named `BitSentinelCore.exe` was locally compiled on the host using `csc.exe`. The user (4nth0ny!) unknowingly launched the file, triggering a chain of persistence mechanisms:
 
----
+* Registry Run key (`HKCU\...\Run\BitSecSvc`)
+* Scheduled task (`schtasks` with UpdateHealthTelemetry)
+* Decoy file drop (`ThreatMetrics`)
+* Shortcut-based reactivation (`systemreport.lnk`)
 
-##  Contents
-
-- `FakeAV_Investigation_Report.md` – Full report with queries, analysis, and timeline
-- `screenshots/` – Visual evidence from Defender telemetry
-- `README.md` – This file
+This project reconstructs the entire attack chain and highlights the techniques used to maintain access and avoid detection.
 
 ---
 
-##  Flag-Worthy Highlights
+## Tools & Techniques
 
-- `BitSentinelCore.exe` execution timestamp: `2025-05-07T02:00:36.794406Z`
-- Registry key: `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\BitSecSvc`
-- Scheduled task: `UpdateHealthTelemetry`
-- True behavioral keylogger trigger: `systemreport.lnk`
-
----
-
-## Screenshots
-
-Each phase of the investigation is supported by Defender query results and screenshots — see the `screenshots/` directory or embedded visuals in the main report.
+* Microsoft Defender for Endpoint
+* Kusto Query Language (KQL)
+* Process and file event correlation
+* Persistence detection via registry and task scheduler
+* Behavioral analysis of `.lnk` files
 
 ---
 
+## MITRE ATT\&CK Mapping
 
+* **T1059.003** (Command and Scripting Interpreter: Windows Command Shell)
+* **T1547.001** (Boot or Logon Autostart Execution: Registry Run Keys)
+* **T1053.005** (Scheduled Task/Job: Scheduled Task)
+* **T1204.002** (User Execution: Malicious File)
+* **T1023** (Shortcut Modification)
+
+---
+
+## Skills Demonstrated
+
+* Threat hunting methodology
+* Endpoint behavioral analysis
+* Detection of stealthy persistence mechanisms
+* Incident timeline reconstruction
+* KQL query creation and investigative logic
+
+---
+
+This project is for educational demonstration purposes and simulates a realistic malware-based intrusion workflow using living-off-the-land techniques and deceptive file triggers.
