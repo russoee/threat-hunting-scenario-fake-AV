@@ -1,4 +1,4 @@
-# Fake AV Threat Hunt 🕵️‍♂
+# Fake AV Threat Hunt
 
 **A forensic threat hunting investigation of `BitSentinelCore.exe` — a fake antivirus used to establish persistence via registry keys, scheduled tasks, and deceptive shortcut files.**
 
