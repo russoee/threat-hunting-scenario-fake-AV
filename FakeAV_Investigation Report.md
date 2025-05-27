@@ -1,4 +1,4 @@
-# Hunt Report: Fake AV with Registry + Task Scheduler Persistence
+# Threat Hunt Report: Fake AV with Registry + Task Scheduler Persistence
 
 ## Summary
 
