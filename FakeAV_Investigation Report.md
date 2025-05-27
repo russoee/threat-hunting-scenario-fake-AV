@@ -31,7 +31,7 @@ DeviceProcessEvents
 
 ➡️ Identified `BitSentinelCore.exe` as a suspicious binary not tied to system or known software.
 
-![Process Summary showing BitSentinelCore.exe](screenshots/step2_csc_compilation_drop.png)
+![Process Summary showing BitSentinelCore.exe](screenshots/step1_proccess_summary_discovery.png)
 
 ---
 
