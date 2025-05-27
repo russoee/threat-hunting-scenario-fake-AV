@@ -23,14 +23,15 @@ This investigation documents a simulated threat scenario in which a fake antivir
 ```kql
 DeviceProcessEvents
 | where DeviceName == "anthony-001"
-| where FileName startswith "A" or FileName startswith "B" or FileName startswith "C"
-| summarize Count = count() by FileName, InitiatingProcessFileName
+| where InitiatingProcessFileName == "explorer.exe"
+| where FileName endswith ".exe"
+| summarize Count = count() by FileName, FolderPath, InitiatingProcessFileName
 | order by Count desc
 ```
 
 ➡️ Identified `BitSentinelCore.exe` as a suspicious binary not tied to system or known software.
 
-<img src="screenshots/step1_process_summary_discovery.png" alt="Process Summary showing BitSentinelCore.exe" width="30%">
+![Process Summary showing BitSentinelCore.exe](screenshots/step2_csc_compilation_drop.png)
 
 ---
 
