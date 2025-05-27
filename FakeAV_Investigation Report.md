@@ -17,6 +17,8 @@ DeviceProcessEvents
 | summarize Count = count() by FileName, InitiatingProcessFileName
 | order by Count desc
 ```
+![Step 1 - Process Summary Discovery](screenshots/step1_process_summary_discovery.png)
+
 
 ### Findings:
 
