@@ -1,12 +1,24 @@
-# Threat Hunt Report: Fake AV with Registry + Task Scheduler Persistence
+# Threat Hunting Case Study: BitSentinelCore Fake Antivirus Attack
 
-**A threat hunting investigation into a fake antivirus executable used to establish persistent access via registry keys, scheduled tasks, and shortcut-based keylogger triggers.**
+## Overview
+
+This investigation documents a simulated threat scenario in which a fake antivirus executable, `BitSentinelCore.exe`, was compiled and launched on host `anthony-001`, triggering a chain of malicious behaviors. The hunt was conducted using Microsoft Defender for Endpoint and KQL to identify local compilation, persistent footholds via the registry and scheduled tasks, and the behavioral activation of a stealthy keylogger using `.lnk` files.
 
 ---
 
-## Initial Binary Discovery
+## Objective
 
-We began by analyzing process activity on host `anthony-001` using the following query:
+* Identify the initial suspicious executable
+* Determine how it was dropped and executed
+* Uncover persistence mechanisms (registry, scheduled task)
+* Discover behavioral triggers related to keylogger activation
+* Correlate all findings into a single, rooted timeline
+
+---
+
+## Investigation Timeline & KQL Queries
+
+### Initial Binary Discovery
 
 ```kql
 DeviceProcessEvents
@@ -16,19 +28,11 @@ DeviceProcessEvents
 | order by Count desc
 ```
 
-This led us to identify **BitSentinelCore.exe** as suspicious:
-
-* Mimicked legitimate AV naming (like SentinelOne)
-* Spawned scripting-related child processes (`cmd.exe`, `conhost.exe`)
-* Initiated by `explorer.exe`, implying user interaction
-
-<img src="screenshots/step1_process_summary_discovery.png" alt="Process Summary showing BitSentinelCore.exe" width="30%">
+➡️ Identified `BitSentinelCore.exe` as a suspicious binary not tied to system or known software.
 
 ---
 
-## BitSentinelCore Dropped via Local Compilation
-
-We used file creation telemetry to trace how BitSentinelCore was introduced:
+### BitSentinelCore Dropped via Local Compilation
 
 ```kql
 DeviceFileEvents
@@ -38,15 +42,11 @@ DeviceFileEvents
 | order by Timestamp asc
 ```
 
-Result: It was compiled locally with `csc.exe` from a `.cmdline` file in the user's Temp directory.
-
-![BitSentinelCore dropped via csc.exe compilation](screenshots/step2_csc_compilation_drop.png)
+➡️ BitSentinelCore was compiled using `csc.exe`, sourced from a `.cmdline` config in the user’s temp directory.
 
 ---
 
-## Manual Execution of BitSentinelCore.exe
-
-We confirmed user interaction by tracking process execution commands:
+### Manual Execution of BitSentinelCore.exe
 
 ```kql
 DeviceProcessEvents
@@ -56,14 +56,11 @@ DeviceProcessEvents
 | sort by Timestamp asc
 ```
 
-* Three direct launches via `explorer.exe`
-* Indicates user manually ran the file
-
-![BitSentinelCore manually executed via explorer.exe](screenshots/step3_manual_executions.png)
+➡️ The file was manually executed via Explorer. Each execution triggered additional malicious behavior.
 
 ---
 
-## Scheduled Task Persistence
+### Scheduled Task Creation via schtasks
 
 ```kql
 DeviceProcessEvents
@@ -73,20 +70,11 @@ DeviceProcessEvents
 | order by Timestamp asc
 ```
 
-Confirmed persistence via scheduled task:
-
-* Name: `UpdateHealthTelemetry`
-* Path: `C:\ProgramData\BitSentinelCore.exe`
-* Triggered daily at 2:00 PM
-
-![Scheduled task created via schtasks.exe](screenshots/step4_schtasks_persistence_chain.png)
-![schtasks launched by BitSentinelCore under 4nth0ny!](screenshots/step7_schtasks_user_context.png)
+➡️ A scheduled task named `UpdateHealthTelemetry` was created to ensure malware persistence.
 
 ---
 
-## Persistence via Registry Key
-
-We investigated registry modifications:
+### Registry-Based Persistence
 
 ```kql
 DeviceRegistryEvents
@@ -95,19 +83,11 @@ DeviceRegistryEvents
 | project Timestamp, RegistryKey, RegistryValueName, RegistryValueData, InitiatingProcessFileName
 ```
 
-We found BitSentinelCore adding itself to:
-
-```
-HKCU\Software\Microsoft\Windows\CurrentVersion\Run\BitSecSvc
-```
-
-![HKCU Run key created by BitSentinelCore.exe](screenshots/step6_registry_run_key.png)
+➡️ Malware added itself to the `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` key under `BitSecSvc`.
 
 ---
 
-## Behavioral Trigger: systemreport.lnk
-
-Looking at Explorer-created files:
+### LNK File Trigger Discovery
 
 ```kql
 DeviceFileEvents
@@ -117,16 +97,11 @@ DeviceFileEvents
 | order by Timestamp asc
 ```
 
-We discovered `systemreport.lnk` and other `.lnk` files:
-
-* Created by `explorer.exe`
-* Suggest user clicked shortcut that launched BitSentinelCore again
-
-![Suspicious LNK files created via explorer.exe](screenshots/step5_explorer_lnk_creation.png)
+➡️ Discovered `systemreport.lnk`, suggesting user interaction triggered malware behavior.
 
 ---
 
-## Full Process Chain
+### Full Process Chain Reconstruction
 
 ```kql
 DeviceProcessEvents
@@ -136,42 +111,56 @@ DeviceProcessEvents
 | order by Timestamp asc
 ```
 
-Observed chain:
-
-```
-explorer.exe → BitSentinelCore.exe → cmd.exe → schtasks.exe
-```
-
-![Full execution chain from initial launch](screenshots/step8_execution_chain_summary.png)
+➡️ Confirmed malware chain: `BitSentinelCore.exe` → `cmd.exe` → `schtasks.exe`
 
 ---
 
-## Persistent Activity Over Time
+### Persistent Activity Over Time
 
-Later logs show recurring `cmd.exe` and other executions:
-
-* Confirms persistence mechanisms worked
-* Continued activity well after initial infection
-
-![Multiple re-executions and scheduled behavior](screenshots/step9_persistence_reexecution_timeline.png)
+➡️ Multiple re-executions of the malware and command-line tools validated scheduled and registry persistence.
 
 ---
 
-## Final Correlation — Keylogger Trigger
+### ThreatMetrics vs. systemreport.lnk Timeline Analysis
 
-By comparing timestamps:
+➡️ `ThreatMetrics` was dropped immediately on execution — likely a decoy. `systemreport.lnk` appeared shortly after via Explorer, marking it as the behavioral keylogger trigger.
 
-* `BitSentinelCore.exe` executed: `2025-05-07T02:00:36.794406Z`
-* Dropped: `ThreatMetrics`
-* Triggered: `systemreport.lnk` via explorer
+---
 
-![ThreatMetrics and systemreport.lnk creation timeline](screenshots/step10_threatmetrics_and_keylogger_trigger.png)
+## Artifacts & Evidence
 
-This timeline supports that `systemreport.lnk` was the behavioral trigger for the keylogger or surveillance payload.
+* BitSentinelCore.exe (compiled via csc.exe)
+* Registry key: `HKCU\...\Run\BitSecSvc`
+* Scheduled task: `UpdateHealthTelemetry`
+* `.lnk` file: `systemreport.lnk`
+* Decoy file: `ThreatMetrics`
+
+---
+
+## Lessons Learned
+
+* Fake antivirus malware can use local compilation to avoid download detection
+* Combining registry, task scheduler, and shortcut triggers ensures stealthy persistence
+* Behavioral triggers (e.g., `.lnk` launch via Explorer) can indicate user deception and lateral persistence methods
+
+---
+
+## Tools & Skills Demonstrated
+
+* Microsoft Defender for Endpoint
+* KQL (Kusto Query Language)
+* Persistence detection techniques
+* File and process analysis
+* Incident timeline construction
+
+---
+
+## Outcome
+
+The full malware chain was exposed and attributed to the execution of `BitSentinelCore.exe` at `2025-05-07T02:00:36.794406Z`. The attacker maintained access through multiple stealthy persistence layers and used deceptive shortcuts to trigger a likely keylogger.
 
 ---
 
 **Status:** ✅ Complete
-**Tooling:** Microsoft Defender for Endpoint (MDE), KQL
-
-
+**Scenario:** "The Phantom Hackers – BitSentinelCore.exe"
+**Author:** Eric Russo
