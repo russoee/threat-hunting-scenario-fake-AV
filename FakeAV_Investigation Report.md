@@ -78,8 +78,6 @@ DeviceProcessEvents
 
 ➡️ A scheduled task named `UpdateHealthTelemetry` was created to ensure malware persistence.
 
-![Scheduled task created via schtasks.exe](screenshots/step4_schtasks_persistence_chain.png)
-
 ![schtasks launched by BitSentinelCore under 4nth0ny!](screenshots/step7_schtasks_user_context.png)
 
 ---
