@@ -30,6 +30,8 @@ DeviceProcessEvents
 
 ➡️ Identified `BitSentinelCore.exe` as a suspicious binary not tied to system or known software.
 
+<img src="screenshots/step1_process_summary_discovery.png" alt="Process Summary showing BitSentinelCore.exe" width="30%">
+
 ---
 
 ### BitSentinelCore Dropped via Local Compilation
@@ -43,6 +45,8 @@ DeviceFileEvents
 ```
 
 ➡️ BitSentinelCore was compiled using `csc.exe`, sourced from a `.cmdline` config in the user’s temp directory.
+
+![BitSentinelCore dropped via csc.exe compilation](screenshots/step2_csc_compilation_drop.png)
 
 ---
 
@@ -58,6 +62,8 @@ DeviceProcessEvents
 
 ➡️ The file was manually executed via Explorer. Each execution triggered additional malicious behavior.
 
+![BitSentinelCore manually executed via explorer.exe](screenshots/step3_manual_executions.png)
+
 ---
 
 ### Scheduled Task Creation via schtasks
@@ -72,6 +78,10 @@ DeviceProcessEvents
 
 ➡️ A scheduled task named `UpdateHealthTelemetry` was created to ensure malware persistence.
 
+![Scheduled task created via schtasks.exe](screenshots/step4_schtasks_persistence_chain.png)
+
+![schtasks launched by BitSentinelCore under 4nth0ny!](screenshots/step7_schtasks_user_context.png)
+
 ---
 
 ### Registry-Based Persistence
@@ -84,6 +94,8 @@ DeviceRegistryEvents
 ```
 
 ➡️ Malware added itself to the `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` key under `BitSecSvc`.
+
+![HKCU Run key created by BitSentinelCore.exe](screenshots/step6_registry_run_key.png)
 
 ---
 
@@ -99,6 +111,8 @@ DeviceFileEvents
 
 ➡️ Discovered `systemreport.lnk`, suggesting user interaction triggered malware behavior.
 
+![Suspicious LNK files created via explorer.exe](screenshots/step5_explorer_lnk_creation.png)
+
 ---
 
 ### Full Process Chain Reconstruction
@@ -113,17 +127,23 @@ DeviceProcessEvents
 
 ➡️ Confirmed malware chain: `BitSentinelCore.exe` → `cmd.exe` → `schtasks.exe`
 
+![Full execution chain from initial launch](screenshots/step8_execution_chain_summary.png)
+
 ---
 
 ### Persistent Activity Over Time
 
 ➡️ Multiple re-executions of the malware and command-line tools validated scheduled and registry persistence.
 
+![Multiple re-executions and scheduled behavior](screenshots/step9_persistence_reexecution_timeline.png)
+
 ---
 
 ### ThreatMetrics vs. systemreport.lnk Timeline Analysis
 
 ➡️ `ThreatMetrics` was dropped immediately on execution — likely a decoy. `systemreport.lnk` appeared shortly after via Explorer, marking it as the behavioral keylogger trigger.
+
+![ThreatMetrics and systemreport.lnk creation timeline](screenshots/step10_threatmetrics_and_keylogger_trigger.png)
 
 ---
 
