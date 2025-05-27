@@ -22,7 +22,7 @@ This led us to identify **BitSentinelCore.exe** as suspicious:
 * Spawned scripting-related child processes (`cmd.exe`, `conhost.exe`)
 * Initiated by `explorer.exe`, implying user interaction
 
-![Process Summary showing BitSentinelCore.exe](screenshots/step1_process_summary_discovery.png)
+<img src="screenshots/step1_process_summary_discovery.png" alt="Process Summary showing BitSentinelCore.exe" width="30%">
 
 ---
 
