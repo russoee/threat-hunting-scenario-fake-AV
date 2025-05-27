@@ -2,7 +2,7 @@
 
 This project documents a full threat hunting investigation using Microsoft Defender for Endpoint and Kusto Query Language (KQL) to uncover a simulated malware scenario. It follows the attacker’s actions from compiling and executing a fake antivirus binary to achieving stealthy persistence and triggering keylogging behavior through deceptive shortcut files.
 
-📄 **Full case write-up:** BitSentinel\_Investigation\_Report.md
+📄 **Full case write-up:** FakeAV\_InvestigationReport.md
 
 ---
 
